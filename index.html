@@ -138,20 +138,28 @@
     background: var(--cream); border-radius: 26px; padding: 26px; color: var(--ink);
     box-shadow: inset 0 0 0 6px var(--cream-2);
   }
-  .board-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; aspect-ratio: 3 / 2; }
+  .board-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; max-width: 420px; margin: 0 auto; }
   .cell {
-    border-radius: 14px; border: 2px dashed var(--line); background: var(--paper);
-    display: grid; place-items: center; position: relative; overflow: visible;
+    aspect-ratio: 697 / 1051; border-radius: 12px; border: 2px dashed var(--line); background: var(--paper);
+    position: relative;
   }
-  .cell img { max-height: 78%; max-width: 78%; object-fit: contain; }
-  .cell .badge {
-    position: absolute; top: -10px; right: -8px; font-family: "Jua"; font-size: 15px;
-    padding: 1px 9px; border-radius: 9px; color: #fff8d6; z-index: 2;
-  }
+  .cell img { width: 100%; height: 100%; object-fit: cover; border-radius: 10px; box-shadow: 0 6px 14px rgba(70, 35, 15, .25); }
+  .cell.placed, .board.done .cell.target { border-color: transparent; background: none; }
   .cell.target { border-color: var(--olive); background: #f3f4d6; }
-  .cell.placed { border: 2px solid var(--caramel); }
-  .cell .drop { opacity: 0; transform: translateY(-40px) scale(.9); transition: all .55s cubic-bezier(.3,1.5,.5,1); }
+  .cell.target::after {
+    content: "여기!"; position: absolute; inset: 0; display: grid; place-items: center;
+    font-family: "Jua"; font-size: 20px; color: var(--olive-dark); transition: opacity .2s;
+  }
+  .board.done .cell.target::after { opacity: 0; }
+  .cell .drop { position: relative; z-index: 1; opacity: 0; transform: translateY(-50px) rotate(-6deg) scale(.92); transition: all .55s cubic-bezier(.3,1.5,.5,1); }
   .board.done .cell .drop { opacity: 1; transform: none; }
+  .token {
+    position: absolute; left: 50%; top: 0; z-index: 3; width: 64px; height: 64px; margin: -32px 0 0 -32px;
+    display: grid; place-items: center; font-family: "Jua"; font-size: 22px; color: #fff8d6;
+    background: url("img/leaf.png") center / contain no-repeat; text-shadow: 0 2px 0 var(--olive-dark);
+    opacity: 0; transform: scale(.4); transition: all .4s .45s cubic-bezier(.3,1.6,.5,1); pointer-events: none;
+  }
+  .board.done .token { opacity: 1; transform: none; }
   .board-foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 18px; flex-wrap: wrap; }
   .board-foot .msg { font-family: "Jua"; font-size: 19px; color: var(--wood); min-height: 1.6em; }
   .board-foot .msg .plus { color: var(--olive-dark); }
@@ -243,8 +251,8 @@
     <div class="links">
       <a href="#play">게임 방법</a>
       <a href="#placement">배치</a>
-      <a href="#cards">카드</a>
       <a href="#rulebook">룰북</a>
+      <a href="#cards">카드</a>
     </div>
   </div>
 </nav>
@@ -326,10 +334,10 @@
       <div class="board reveal" id="board">
         <div class="board-grid">
           <div class="cell"></div>
-          <div class="cell placed"><img src="img/cutouts/vase.png" alt="꽃병"><span class="badge" style="background:var(--caramel)">가치 1</span></div>
+          <div class="cell placed"><img src="img/cards/Vase.png" alt="꽃병 카드 (가치 1)"></div>
           <div class="cell"></div>
           <div class="cell"></div>
-          <div class="cell target" id="target"><img class="drop" src="img/cutouts/table.png" alt="테이블"></div>
+          <div class="cell target" id="target"><img class="drop" src="img/cards/Table.png" alt="테이블 카드 (위 칸 ×1 ×1 ×1)"><span class="token">+1</span></div>
           <div class="cell"></div>
         </div>
         <div class="board-foot">
@@ -359,18 +367,6 @@
       </ol>
       <div class="tip">Tip. 텃밭 카드도 경매에서 더 낙찰받을 수 있어요.</div>
     </div>
-  </div>
-</section>
-
-<section id="cards">
-  <div class="wrap">
-    <div class="reveal">
-      <div class="eyebrow"><img src="img/leaf.png" alt="">카드 갤러리</div>
-      <h2>우리집에 들일 가구들</h2>
-      <p class="lead">선인장·토스터 같은 1원짜리 소품부터 피아노·벽난로 같은 5원짜리 큰 가구까지. 비쌀수록 초록 칸은 작고 빨간 칸은 커요. 카드를 누르면 크게 볼 수 있어요.</p>
-    </div>
-    <div class="filters" id="filters"></div>
-    <div class="gallery" id="gallery"></div>
   </div>
 </section>
 
@@ -410,6 +406,18 @@
     <div class="actions">
       <a class="pill" href="files/rulebook_A4.pdf" download="낙찰우리집_룰북_A4.pdf">룰북 PDF 받기 (A4)</a>
     </div>
+  </div>
+</section>
+
+<section id="cards">
+  <div class="wrap">
+    <div class="reveal">
+      <div class="eyebrow"><img src="img/leaf.png" alt="">카드 갤러리</div>
+      <h2>우리집에 들일 가구들</h2>
+      <p class="lead">선인장·토스터 같은 1원짜리 소품부터 피아노·벽난로 같은 5원짜리 큰 가구까지. 비쌀수록 초록 칸은 작고 빨간 칸은 커요. 카드를 누르면 크게 볼 수 있어요.</p>
+    </div>
+    <div class="filters" id="filters"></div>
+    <div class="gallery" id="gallery"></div>
   </div>
 </section>
 
