@@ -60,8 +60,22 @@
   @media (max-width: 720px) { nav .links { display: none; } }
 
   /* hero */
-  .hero { background: var(--yellow); }
-  .hero picture img { width: 100%; max-width: 1920px; margin: 0 auto; }
+  /* 화면 비율이 그림과 달라도 그림은 잘리지 않게(contain) 놓고, 남는 자리는 같은 그림을 흐리게 깔아 채운다 */
+  .hero { --hero-img: url("img/banner.png"); --chrome: 120px; }
+  .hero-media { display: block; position: relative; overflow: hidden; background: var(--yellow); }
+  .hero-media::before {
+    content: ""; position: absolute; inset: -40px;
+    background: var(--hero-img) center / cover no-repeat;
+    filter: blur(24px) saturate(1.1); opacity: .85;
+  }
+  .hero picture img {
+    position: relative; width: 100%; height: auto; margin: 0 auto;
+    max-height: calc(100vh - var(--chrome));
+    max-height: calc(100svh - var(--chrome));
+    min-height: 220px; object-fit: contain;
+  }
+  @media (max-aspect-ratio: 4/5) { .hero { --hero-img: url("img/poster.png"); } }
+  @media (max-width: 560px) { .hero { --chrome: 150px; } }
   .hero-bar {
     background: var(--wood); color: var(--cream);
     display: flex; flex-wrap: wrap; justify-content: center; gap: 10px 34px;
@@ -84,7 +98,10 @@
     background: var(--cream); border: 2px dashed var(--caramel); border-radius: var(--radius);
     padding: 30px 34px; margin: 26px 0 0;
   }
-  .story .poster { border-radius: var(--radius); box-shadow: 0 18px 40px rgba(90, 50, 20, .18); transform: rotate(1.5deg); }
+  .story .poster {
+    border-radius: var(--radius); box-shadow: 0 18px 40px rgba(90, 50, 20, .18); transform: rotate(1.5deg);
+    justify-self: center; width: auto; max-height: 80vh; max-height: 80svh;
+  }
   @media (max-width: 860px) { .story .grid { grid-template-columns: minmax(0, 1fr); } .story .poster { max-width: min(420px, 100%); margin: 0 auto; } }
 
   /* how to play */
@@ -240,8 +257,8 @@
 </nav>
 
 <header class="hero" id="top">
-  <picture>
-    <source media="(max-width: 720px)" srcset="img/poster.png">
+  <picture class="hero-media">
+    <source media="(max-aspect-ratio: 4/5)" srcset="img/poster.png">
     <img src="img/banner.png" alt="낙찰! 우리집 — 경매로 가구를 사고, 집을 꾸며 코인을 모으세요!" width="1920" height="720">
   </picture>
   <div class="hero-bar">
