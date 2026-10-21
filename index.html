@@ -569,9 +569,9 @@
       token = `<span class="token ${EDGE[slot]}">+${n}</span>`;
       text = `${SIDE[slot]} 칸 ×${v} → 캣타워 가치 ${TOWER.value} × ${v} = <span class="plus">토큰 ${n}개를 받아요!</span>`;
     } else {
-      const n = TOWER.value + v;
+      const n = -v;
       token = `<span class="token red ${EDGE[slot]}">-${n}</span>`;
-      text = `${SIDE[slot]} 칸 ${v} → 캣타워 가치 ${TOWER.value} ${v} = <span class="minus">토큰 ${n}개를 은행에</span> 내요.`;
+      text = `${SIDE[slot]} 칸에 가구 존재 → ${v} = <span class="minus">토큰 ${n}개를 은행에</span> 내요.`;
     }
     spot.innerHTML = `<img class="drop" src="${LIGHT.src}" alt="전등 카드">` + token;
     msg.innerHTML = text;
