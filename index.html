@@ -149,7 +149,6 @@
   .chip { flex: none; font-family: "Jua"; font-size: 22px; min-width: 58px; text-align: center; border-radius: 10px; padding: 4px 8px; color: #fff8d6; }
   .chip.green { background: var(--olive); }
   .chip.red { background: var(--red); }
-  .chip.grey { background: #8d8d8d; }
   .rule b { font-family: "Jua"; font-weight: 400; font-size: 20px; color: var(--yellow); display: block; }
   .rule p { margin: 2px 0 0; color: #ead6bb; font-size: 15.5px; }
 
@@ -211,9 +210,17 @@
   .calc li em.minus { color: #ff9a76; }
   .result h3 .sum { margin-left: 10px; font-size: 30px; color: #d6e05a; }
   .result h3 .sum.minus { color: #ff9a76; }
-  .goal-line { margin: 14px 0 0; padding: 10px 14px; border-radius: 12px; background: rgba(214, 224, 90, .12); color: #e5ec9c; font-weight: 600; font-size: 15px; }
-  .goal-line.done { background: var(--olive); color: #fff; }
-  .demo-btns { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
+  /* 정산 결과 제목 줄: 왼쪽 제목·합계·최고 배치 배지, 오른쪽 버튼 */
+  .result-head { margin-bottom: 6px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 20px; }
+  .result-head h3 { margin: 0; display: flex; align-items: center; flex-wrap: wrap; gap: 4px 0; }
+  .best-badge {
+    margin-left: 12px; padding: 3px 14px; border-radius: 99px; background: var(--olive); color: #fff;
+    font-size: 17px; box-shadow: 0 3px 0 var(--olive-dark); animation: pop .35s both cubic-bezier(.3,1.6,.5,1);
+  }
+  .best-badge[hidden] { display: none; }
+  .demo-btns { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 10px; margin-left: auto; }
+  .demo-btns .btn { font-size: 16px; padding: 7px 16px; }
+  @media (max-width: 560px) { .demo-btns { margin-left: 0; justify-content: flex-start; } }
   button.btn.ghosty { background: transparent; color: var(--cream); box-shadow: inset 0 0 0 2px rgba(234, 211, 178, .5); }
   button.btn.ghosty:active { transform: translateY(1px); box-shadow: inset 0 0 0 2px rgba(234, 211, 178, .5); }
   .mini-rules { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px 28px; color: #ead6bb; font-size: 15.5px; }
@@ -389,9 +396,8 @@
     </div>
     <div class="demo">
       <div class="mini-rules reveal">
-        <span><span class="chip green">×2</span>그 칸의 가구 가치 × 배율만큼 받기</span>
-        <span><span class="chip red">-2</span>그 칸에 가구가 있으면 수치만큼 내기</span>
-        <span><span class="chip grey">빈칸</span>계산하지 않아요</span>
+        <span><span class="chip green">×N</span>그 칸의 가구 가치 × 배율만큼 받기</span>
+        <span><span class="chip red">-N</span>그 칸에 가구가 있으면 수치만큼 내기</span>
       </div>
       <div class="board reveal" id="board">
         <div class="board-body">
@@ -404,14 +410,15 @@
       </div>
       <div class="reveal">
         <div class="result" aria-live="polite">
-          <h3>정산 결과 <span class="sum" id="sum"></span></h3>
-          <div id="calcOut"></div>
-          <p class="goal-line" id="goal"></p>
-          <div class="demo-btns">
-            <button class="btn" id="bestBtn" type="button">최고 배치 보기</button>
-            <button class="btn ghosty" id="resetBtn" type="button">다시 하기</button>
-            <button class="btn ghosty" id="drawBtn" type="button">다른 카드 뽑기</button>
+          <div class="result-head">
+            <h3>정산 결과 <span class="sum" id="sum"></span><span class="best-badge" id="bestBadge" hidden>최고 배치!</span></h3>
+            <div class="demo-btns">
+              <button class="btn" id="bestBtn" type="button">최고 배치 보기</button>
+              <button class="btn ghosty" id="resetBtn" type="button">다시 하기</button>
+              <button class="btn ghosty" id="drawBtn" type="button">다른 카드 뽑기</button>
+            </div>
           </div>
+          <div id="calcOut"></div>
         </div>
       </div>
     </div>
@@ -557,7 +564,6 @@
   const grid4 = document.getElementById("grid4");
   const tray = document.getElementById("tray");
   const calcOut = document.getElementById("calcOut");
-  const goal = document.getElementById("goal");
   let hand = DEFAULT_HAND.map(en => BY_EN[en]);
   let pos = [null, null, null, null];   // 카드 i가 놓인 칸 번호(0~15), 손패면 null
   let sel = null, best = null;
@@ -639,10 +645,7 @@
         : `<p class="empty">맞닿아 발동한 칸이 아직 없어요. 카드끼리 붙여 보세요.</p>`;
       calcOut.innerHTML = list;
     }
-    const done = placed === 4 && r.total === best.total;
-    goal.className = "goal-line" + (done ? " done" : "");
-    goal.textContent = done ? `최고 배치를 찾았어요! 이 4장으로 받을 수 있는 최대 ${best.total}개입니다.`
-                            : `도전: 이 4장으로 받을 수 있는 최대 토큰은 ${best.total}개예요.` + (placed < 4 ? ` (${placed}/4장 배치)` : "");
+    document.getElementById("bestBadge").hidden = !(placed === 4 && r.total === best.total);
   }
 
   function place(i, cell) {   // cell = 칸 번호 또는 null(손패로). 칸에 다른 카드가 있으면 자리를 맞바꾼다
