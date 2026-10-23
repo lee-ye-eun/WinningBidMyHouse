@@ -143,7 +143,7 @@
   .placement h2 { color: var(--yellow); }
   .placement .lead { color: #e7cfb0; }
   .placement .lead.try { color: var(--yellow); font-weight: 700; margin-top: 4px; }
-  .demo { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 40px; align-items: start; margin-top: 40px; }
+  .demo { display: grid; gap: 22px; margin-top: 36px; }
   .rules { display: grid; gap: 16px; }
   .rule { display: flex; gap: 16px; align-items: flex-start; background: rgba(255,255,255,.06); border-radius: 18px; padding: 18px 20px; }
   .chip { flex: none; font-family: "Jua"; font-size: 22px; min-width: 58px; text-align: center; border-radius: 10px; padding: 4px 8px; color: #fff8d6; }
@@ -161,14 +161,14 @@
   .board-label { font-family: "Jua"; font-size: 18px; color: var(--wood); margin: 0 0 10px; display: flex; justify-content: space-between; gap: 10px; }
   .board-label small { font-family: "Pretendard"; font-size: 13.5px; color: var(--ink-soft); }
   /* 넓은 화면: 왼쪽 손패 한 줄(세로) + 오른쪽 4×4 판 — 끌어 놓는 동안 둘 다 한 화면에 보이게 */
-  .board-body { display: grid; grid-template-columns: 84px minmax(0, 360px); gap: 18px; justify-content: center; align-items: start; }
+  .board-body { display: grid; grid-template-columns: 196px minmax(0, 380px); gap: 28px; justify-content: center; align-items: center; }
   .grid4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
-  .tray { display: grid; grid-template-columns: 1fr; gap: 8px; }
+  .tray { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
   .slot, .tray-slot {
     position: relative; aspect-ratio: 697 / 1051; padding: 0; font: inherit; cursor: pointer;
     border: 2px dashed #d8c3a2; border-radius: 10px; background: var(--paper); transition: background .15s, border-color .15s;
   }
-  .tray-wrap { padding-right: 16px; border-right: 2px dotted var(--line); }
+  .tray-wrap { padding-right: 24px; border-right: 2px dotted var(--line); align-self: stretch; display: flex; flex-direction: column; justify-content: center; }
   .tray-wrap .board-label { font-size: 15px; justify-content: center; }
   @media (max-width: 560px) {
     .board { padding: 16px; }
@@ -203,7 +203,8 @@
   .result { background: rgba(255,255,255,.06); border-radius: 18px; padding: 20px 22px; }
   .result h3 { font-size: 24px; color: var(--yellow); margin: 0 0 6px; }
   .result .empty { color: #d9c3a4; margin: 6px 0 0; }
-  .calc { list-style: none; margin: 8px 0 0; padding: 0; }
+  .calc { list-style: none; margin: 8px 0 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 36px; }
+  @media (max-width: 760px) { .calc { grid-template-columns: minmax(0, 1fr); } }
   .calc li { display: grid; grid-template-columns: 1fr auto; gap: 2px 12px; padding: 9px 0; border-bottom: 1px dashed rgba(234, 211, 178, .25); }
   .calc li b { font-weight: 700; color: var(--cream); font-size: 15.5px; }
   .calc li span { grid-column: 1; color: #d9c3a4; font-size: 14.5px; }
@@ -219,7 +220,8 @@
   .demo-btns { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
   button.btn.ghosty { background: transparent; color: var(--cream); box-shadow: inset 0 0 0 2px rgba(234, 211, 178, .5); }
   button.btn.ghosty:active { transform: translateY(1px); box-shadow: inset 0 0 0 2px rgba(234, 211, 178, .5); }
-  .mini-rules { display: flex; flex-wrap: wrap; gap: 8px 14px; margin-bottom: 18px; color: #ead6bb; font-size: 14.5px; }
+  .mini-rules { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px 28px; color: #ead6bb; font-size: 15.5px; }
+  @media (max-width: 560px) { .mini-rules { flex-direction: column; align-items: flex-start; gap: 8px; font-size: 14.5px; } }
   .mini-rules span { display: flex; align-items: center; gap: 8px; }
   .mini-rules .chip { font-size: 17px; min-width: 44px; padding: 2px 6px; }
   button.btn {
@@ -316,7 +318,7 @@
   <div class="hero-bar">
     <span><b>2~4인</b>플레이어</span>
     <span><b>8+</b>세 이상</span>
-    <span><b>30~60분</b>플레이 시간</span>
+    <span><b>10~30분</b>플레이 시간</span>
     <span><b>43장</b>가구 카드</span>
   </div>
 </header>
@@ -390,6 +392,11 @@
       <p class="lead try">가구 카드 4장을 4×4 우리집 판에 끌어다 놓아 보세요. 놓는 대로 정산을 계산해 드려요.</p>
     </div>
     <div class="demo">
+      <div class="mini-rules reveal">
+        <span><span class="chip green">×2</span>그 칸의 가구 가치 × 배율만큼 받기</span>
+        <span><span class="chip red">-2</span>그 칸에 가구가 있으면 수치만큼 내기</span>
+        <span><span class="chip grey">빈칸</span>계산하지 않아요</span>
+      </div>
       <div class="board reveal" id="board">
         <p class="board-label">우리집 <small>끌어다 놓기 · 또는 카드를 누른 뒤 칸을 누르기</small></p>
         <div class="board-body">
@@ -401,11 +408,6 @@
         </div>
       </div>
       <div class="reveal">
-        <div class="mini-rules">
-          <span><span class="chip green">×2</span>그 칸의 가구 가치 × 배율만큼 받기</span>
-          <span><span class="chip red">-2</span>그 칸에 가구가 있으면 수치만큼 내기</span>
-          <span><span class="chip grey">빈칸</span>계산하지 않아요</span>
-        </div>
         <div class="result" aria-live="polite">
           <h3>정산 결과</h3>
           <div id="calcOut"></div>
