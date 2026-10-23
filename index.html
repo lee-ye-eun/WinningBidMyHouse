@@ -143,7 +143,7 @@
   .placement h2 { color: var(--yellow); }
   .placement .lead { color: #e7cfb0; }
   .placement .lead.try { color: var(--yellow); font-weight: 700; margin-top: 4px; }
-  .demo { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: center; margin-top: 40px; }
+  .demo { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 40px; align-items: start; margin-top: 40px; }
   .rules { display: grid; gap: 16px; }
   .rule { display: flex; gap: 16px; align-items: flex-start; background: rgba(255,255,255,.06); border-radius: 18px; padding: 18px 20px; }
   .chip { flex: none; font-family: "Jua"; font-size: 22px; min-width: 58px; text-align: center; border-radius: 10px; padding: 4px 8px; color: #fff8d6; }
@@ -153,51 +153,75 @@
   .rule b { font-family: "Jua"; font-weight: 400; font-size: 20px; color: var(--yellow); display: block; }
   .rule p { margin: 2px 0 0; color: #ead6bb; font-size: 15.5px; }
 
+  /* 4×4 우리집 판 + 손패 4장: 끌어다 놓거나(드래그), 카드를 누른 뒤 칸을 눌러 놓는다 */
   .board {
-    position: relative;
-    background: var(--cream); border-radius: 26px; padding: 26px; color: var(--ink);
+    background: var(--cream); border-radius: 26px; padding: 22px; color: var(--ink);
     box-shadow: inset 0 0 0 6px var(--cream-2);
   }
-  .board-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; max-width: 360px; margin: 0 auto; }
-  .cell { aspect-ratio: 697 / 1051; border-radius: 12px; position: relative; }
-  .cell img { width: 100%; height: 100%; object-fit: cover; border-radius: 10px; box-shadow: 0 6px 14px rgba(70, 35, 15, .25); }
-  button.cell {
-    font: inherit; padding: 0; cursor: pointer; border: 2px dashed var(--olive); background: #f3f4d6;
-    color: var(--olive-dark); transition: background .15s, transform .15s;
+  .board-label { font-family: "Jua"; font-size: 18px; color: var(--wood); margin: 0 0 10px; display: flex; justify-content: space-between; gap: 10px; }
+  .board-label small { font-family: "Pretendard"; font-size: 13.5px; color: var(--ink-soft); }
+  /* 넓은 화면: 왼쪽 손패 한 줄(세로) + 오른쪽 4×4 판 — 끌어 놓는 동안 둘 다 한 화면에 보이게 */
+  .board-body { display: grid; grid-template-columns: 84px minmax(0, 360px); gap: 18px; justify-content: center; align-items: start; }
+  .grid4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+  .tray { display: grid; grid-template-columns: 1fr; gap: 8px; }
+  .slot, .tray-slot {
+    position: relative; aspect-ratio: 697 / 1051; padding: 0; font: inherit; cursor: pointer;
+    border: 2px dashed #d8c3a2; border-radius: 10px; background: var(--paper); transition: background .15s, border-color .15s;
   }
-  button.cell::after {
-    content: "＋\A여기 놓기"; white-space: pre; position: absolute; inset: 0; display: grid; place-items: center;
-    font-family: "Jua"; font-size: 18px; line-height: 1.3; text-align: center;
+  .tray-wrap { padding-right: 16px; border-right: 2px dotted var(--line); }
+  .tray-wrap .board-label { font-size: 15px; justify-content: center; }
+  @media (max-width: 560px) {
+    .board { padding: 16px; }
+    .board-body { grid-template-columns: minmax(0, 270px); gap: 14px; }
+    .board-label { flex-wrap: wrap; }
+    .tray-wrap { order: 2; padding: 12px 0 0; border-right: 0; border-top: 2px dotted var(--line); }
+    .tray { grid-template-columns: repeat(4, 1fr); max-width: 230px; margin: 0 auto; }
+    .slot .net { font-size: 13px; min-width: 26px; padding: 0 5px; top: -7px; right: -7px; }
   }
-  button.cell:hover, button.cell:focus-visible { background: #e9edb8; transform: translateY(-3px); outline: none; }
-  button.cell:disabled { cursor: default; border-color: var(--line); background: var(--paper); transform: none; }
-  button.cell:disabled::after { content: ""; }
-  button.cell.chosen { border-color: transparent; background: none; }
-  /* 손에 든 전등 카드: 판 왼쪽 위에 살짝 걸쳐 있다가, 놓으면 사라지고 고른 칸에 내려앉는다 */
-  .hand {
-    position: absolute; top: -26px; left: -14px; z-index: 4; width: clamp(80px, 22%, 112px);
-    border-radius: 10px; box-shadow: 0 10px 22px rgba(30, 12, 4, .4);
-    transform: rotate(-9deg); transition: opacity .3s, transform .3s;
+  .slot:hover, .slot:focus-visible, .tray-slot:focus-visible { background: #f3f4d6; border-color: var(--olive); outline: none; }
+  .slot.over, .tray.over .tray-slot:not(.has) { background: #e9edb8; border-color: var(--olive); border-style: solid; }
+  .slot.has, .tray-slot.has { border-color: transparent; background: none; touch-action: none; cursor: grab; }
+  .tray-slot:not(.has) { cursor: default; opacity: .55; }
+  .slot img, .tray-slot img {
+    width: 100%; height: 100%; object-fit: cover; border-radius: 8px; pointer-events: none; user-select: none;
+    box-shadow: 0 5px 12px rgba(70, 35, 15, .25); -webkit-user-drag: none;
   }
-  .board.placed .hand { opacity: 0; transform: rotate(-9deg) translateY(-24px) scale(.85); }
-  .cell .drop { position: relative; z-index: 1; animation: drop .55s .3s both cubic-bezier(.3,1.5,.5,1); }
-  @keyframes drop { from { opacity: 0; transform: translateY(-50px) rotate(-6deg) scale(.92); } }
-  .token {
-    position: absolute; z-index: 3; width: 66px; height: 66px; margin: -33px 0 0 -33px;
-    display: grid; place-items: center; font-family: "Jua"; font-size: 22px; color: #fff8d6;
-    background: url("img/leaf.png") center / contain no-repeat; text-shadow: 0 2px 0 var(--olive-dark);
-    animation: pop .4s .8s both cubic-bezier(.3,1.6,.5,1); pointer-events: none;
+  .slot.sel img, .tray-slot.sel img { outline: 4px solid var(--olive); outline-offset: 2px; }
+  .slot.lift img, .tray-slot.lift img { opacity: .25; }
+  .slot .net {
+    position: absolute; z-index: 2; top: -9px; right: -9px; min-width: 32px; padding: 1px 7px; border-radius: 99px;
+    font-family: "Jua"; font-size: 15px; line-height: 1.5; color: #fff8d6; background: var(--olive); box-shadow: 0 2px 0 var(--olive-dark);
+    animation: pop .35s both cubic-bezier(.3,1.6,.5,1); pointer-events: none;
   }
-  .token.red { filter: hue-rotate(-75deg) saturate(1.6) brightness(.9); text-shadow: 0 2px 0 #7a2410; }
-  .token.none { background: var(--paper); border: 2px solid var(--line); border-radius: 50%; color: var(--ink-soft); text-shadow: none; font-size: 15px; }
-  .token.t { left: 50%; top: 0; } .token.b { left: 50%; top: 100%; }
-  .token.l { left: 0; top: 50%; } .token.r { left: 100%; top: 50%; }
+  .slot .net.minus { background: var(--red); box-shadow: 0 2px 0 #7a2410; }
+  .slot .net.zero { background: #b9a991; box-shadow: 0 2px 0 #8f7f68; }
   @keyframes pop { from { opacity: 0; transform: scale(.4); } }
-  .board-foot .msg .minus { color: var(--red); }
-  .board-foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 18px; flex-wrap: wrap; }
-  .board-foot .msg { font-family: "Jua"; font-size: 19px; color: var(--wood); min-height: 1.6em; }
-  .board-foot .msg .plus { color: var(--olive-dark); }
-  .board-foot .msg small { display: block; font-family: "Pretendard"; font-size: 14px; color: var(--ink-soft); }
+  .ghost {
+    position: fixed; z-index: 50; pointer-events: none; border-radius: 10px;
+    box-shadow: 0 16px 30px rgba(30, 12, 4, .45); transform: rotate(-4deg) scale(1.06);
+  }
+  .result { background: rgba(255,255,255,.06); border-radius: 18px; padding: 20px 22px; }
+  .result h3 { font-size: 24px; color: var(--yellow); margin: 0 0 6px; }
+  .result .empty { color: #d9c3a4; margin: 6px 0 0; }
+  .calc { list-style: none; margin: 8px 0 0; padding: 0; }
+  .calc li { display: grid; grid-template-columns: 1fr auto; gap: 2px 12px; padding: 9px 0; border-bottom: 1px dashed rgba(234, 211, 178, .25); }
+  .calc li b { font-weight: 700; color: var(--cream); font-size: 15.5px; }
+  .calc li span { grid-column: 1; color: #d9c3a4; font-size: 14.5px; }
+  .calc li em { grid-row: 1 / span 2; grid-column: 2; align-self: center; font-style: normal; font-family: "Jua"; font-size: 24px; color: #d6e05a; }
+  .calc li em.minus { color: #ff9a76; }
+  .total { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-top: 12px; font-family: "Jua"; font-size: 22px; color: var(--yellow); }
+  .total b { font-weight: 400; font-size: 32px; color: #d6e05a; }
+  .total b.minus { color: #ff9a76; }
+  .score-prev { margin: 10px 0 0; color: #ead6bb; font-size: 15px; }
+  .score-prev b { color: var(--cream); }
+  .goal-line { margin: 14px 0 0; padding: 10px 14px; border-radius: 12px; background: rgba(214, 224, 90, .12); color: #e5ec9c; font-weight: 600; font-size: 15px; }
+  .goal-line.done { background: var(--olive); color: #fff; }
+  .demo-btns { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
+  button.btn.ghosty { background: transparent; color: var(--cream); box-shadow: inset 0 0 0 2px rgba(234, 211, 178, .5); }
+  button.btn.ghosty:active { transform: translateY(1px); box-shadow: inset 0 0 0 2px rgba(234, 211, 178, .5); }
+  .mini-rules { display: flex; flex-wrap: wrap; gap: 8px 14px; margin-bottom: 18px; color: #ead6bb; font-size: 14.5px; }
+  .mini-rules span { display: flex; align-items: center; gap: 8px; }
+  .mini-rules .chip { font-size: 17px; min-width: 44px; padding: 2px 6px; }
   button.btn {
     font: inherit; font-family: "Jua"; font-size: 18px; border: 0; cursor: pointer;
     background: var(--olive); color: #fff; padding: 9px 20px; border-radius: 99px;
@@ -230,18 +254,8 @@
   dialog img { border-radius: 18px; max-height: 82vh; width: auto; margin: 0 auto; }
   dialog p { text-align: center; color: var(--cream); font-family: "Jua"; font-size: 22px; margin: 12px 0 0; }
 
-  /* garden */
-  .garden { background: var(--paper); }
-  .garden .grid { display: grid; grid-template-columns: 1fr 1.1fr; gap: 56px; align-items: center; }
-  .cycle { display: flex; align-items: center; justify-content: center; gap: 10px; }
-  .cycle figure { margin: 0; text-align: center; flex: 1; max-width: 190px; }
-  .cycle img { border-radius: 12px; box-shadow: 0 8px 18px rgba(70, 35, 15, .18); }
-  .cycle figcaption { font-family: "Jua"; font-size: 18px; color: var(--wood); margin-top: 10px; }
-  .cycle .arrow { font-family: "Jua"; font-size: 30px; color: var(--caramel); }
-  .garden ol { padding-left: 20px; color: var(--ink-soft); }
-  .garden ol li { margin-bottom: 6px; }
-  .tip { background: #f3f4d6; border-left: 6px solid var(--olive); border-radius: 12px; padding: 14px 18px; margin-top: 18px; color: var(--olive-dark); font-weight: 600; }
-  @media (max-width: 860px) { .garden .grid { grid-template-columns: minmax(0, 1fr); } }
+  .tip { background: #fbe6da; border-left: 6px solid #ef9a72; border-radius: 12px; padding: 16px 20px; margin-top: 24px; color: #8a4125; }
+  .tip b { font-family: "Jua"; font-weight: 400; font-size: 19px; display: block; margin-bottom: 2px; }
 
   /* end + score */
   .end .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; margin-top: 36px; }
@@ -303,7 +317,7 @@
     <span><b>2~4인</b>플레이어</span>
     <span><b>8+</b>세 이상</span>
     <span><b>30~60분</b>플레이 시간</span>
-    <span><b>45종</b>가구 카드</span>
+    <span><b>43장</b>가구 카드</span>
   </div>
 </header>
 
@@ -338,31 +352,32 @@
   <div class="wrap">
     <div class="reveal">
       <div class="eyebrow"><img src="img/leaf.png" alt="">게임 방법</div>
-      <h2>내 차례에는 이렇게</h2>
-      <p class="lead">모든 플레이어는 나뭇잎 토큰 10원과 텃밭 카드 1장으로 시작합니다.<br>가운데 ‘경매장’에는 가구 카드 2장과 텃밭 카드 1장이 늘 펼쳐져 있어요.</p>
+      <h2>경매로 가구 4장을 모아요</h2>
+      <p class="lead">모든 플레이어는 나뭇잎 토큰 10원으로 시작합니다.<br>가운데 ‘경매장’에는 가구 카드 3장이 펼쳐져 있어요. 경매는 모든 플레이어가 가구 카드 4장을 모을 때까지 이어집니다.</p>
     </div>
     <div class="steps">
       <div class="step reveal">
         <div class="num">1</div>
-        <h3>텃밭 돌보기 <span class="tag">필수</span></h3>
-        <p>심어 둔 텃밭을 흙 → 새싹으로 뒤집고, 새싹이 된 텃밭은 수확해 토큰 3개를 받아요.</p>
+        <h3>경매 열기</h3>
+        <p>내 차례에 경매장의 카드 1장을 골라, 원하는 가격을 외치며 가운데에 내려놓아요. 최소 가격은 1원!</p>
       </div>
       <div class="step reveal">
         <div class="num">2</div>
-        <h3>텃밭에 토큰 심기 <span class="tag">선택</span></h3>
-        <p>빈 텃밭에 토큰을 1개씩 심어 둘 수 있어요. 지금의 1원이 나중의 3원이 됩니다.</p>
+        <h3>입찰</h3>
+        <p>시계 방향으로 돌아가며 지금 값보다 높게 부르거나 빠져요. 마지막까지 남은 한 명이 낙찰!</p>
       </div>
       <div class="step reveal">
         <div class="num">3</div>
-        <h3>경매 열기 <span class="tag">필수</span></h3>
-        <p>경매장의 카드 1장을 골라 원하는 가격을 외치세요. 시계 방향으로 더 높게 부르거나 빠지고, 마지막 한 명이 낙찰!</p>
+        <h3>낙찰</h3>
+        <p>낙찰가만큼 토큰을 은행에 내고 가구 카드를 손패로 가져와요. 4장을 모으면 남은 순서칩 중 가장 작은 숫자를 가져가고 경매에서 빠집니다.</p>
       </div>
       <div class="step reveal">
         <div class="num">4</div>
-        <h3>집에 배치하기</h3>
-        <p>가구를 낙찰 받았다면, 해당 가구는 바로 내 집에 놓아요. 이미 놓인 가구와 맞닿아야 하고, 놓는 순간 <b>영향판</b>이 발동합니다.</p>
+        <h3>가구 배치</h3>
+        <p>경매가 모두 끝나면 다 함께 4장을 우리집에 배치해요. 배치를 확정하면 <b>영향판</b>대로 토큰을 정산합니다.</p>
       </div>
     </div>
+    <div class="tip reveal"><b>나뭇잎 토큰을 모두 사용했다면?</b>가구 4장을 모으기 전에 토큰을 다 썼다면, 남은 순서칩 중 가장 큰 숫자를 가져와요. 다른 플레이어의 경매가 모두 끝나면, 경매장에 남은 카드 2장 중 1장을 가져올 수 있어요.</div>
   </div>
 </section>
 
@@ -371,50 +386,37 @@
     <div class="reveal">
       <div class="eyebrow" style="color:#d6e05a"><img src="img/leaf.png" alt="">핵심 재미</div>
       <h2>어디에 놓느냐가 전부!</h2>
-      <p class="lead">카드 아래쪽의 영향판은, 해당 가구가 주변 가구에 어떤 영향을 주는지 알려 줍니다.<br>가구를 내려놓는 그 순간, 한 번만 발동해요.</p>
-      <p class="lead try">이미 놓인 캣타워 옆에 전등 카드를 직접 놓아 보세요.</p>
+      <p class="lead">카드 아래쪽의 영향판은, 이 가구가 둘레 칸에 놓인 가구에 어떤 영향을 주는지 알려 줍니다.<br>4장을 어떻게 조합하느냐에 따라 받는 토큰이 크게 달라져요.</p>
+      <p class="lead try">가구 카드 4장을 4×4 우리집 판에 끌어다 놓아 보세요. 놓는 대로 정산을 계산해 드려요.</p>
     </div>
     <div class="demo">
-      <div class="rules reveal">
-        <div class="rule"><span class="chip green">×2</span><div><b>초록 칸</b><p>그 자리에 있는 가구의 가치 × 배율만큼 토큰을 받아요.</p></div></div>
-        <div class="rule"><span class="chip red">-2</span><div><b>빨간 칸</b><p>어울리지 않는 자리. 토큰을 은행에 내야 하고, 낼 토큰이 없으면 그곳엔 놓을 수 없어요.</p></div></div>
-        <div class="rule"><span class="chip grey">✚</span><div><b>가운데 나사</b><p>내가 놓을 가구 자신의 자리예요. 첫 가구 이후로는 이미 놓인 가구와 꼭 맞닿게!</p></div></div>
-      </div>
       <div class="board reveal" id="board">
-        <img class="hand" src="img/cards/PendantLight.png" alt="놓을 카드: 전등">
-        <div class="board-grid" id="boardGrid">
-          <div></div><button class="cell" data-dx="0" data-dy="-1" aria-label="캣타워 위에 놓기"></button><div></div>
-          <button class="cell" data-dx="-1" data-dy="0" aria-label="캣타워 왼쪽에 놓기"></button>
-          <div class="cell"><img src="img/cards/CatTower.png" alt="캣타워 카드 (가치 4)"></div>
-          <button class="cell" data-dx="1" data-dy="0" aria-label="캣타워 오른쪽에 놓기"></button>
-          <div></div><button class="cell" data-dx="0" data-dy="1" aria-label="캣타워 아래에 놓기"></button><div></div>
-        </div>
-        <div class="board-foot">
-          <div class="msg" id="msg">전등 카드를 어디에 놓을까요? 빈 칸을 눌러 보세요.</div>
-          <button class="btn" id="resetBtn" disabled>다시 하기</button>
+        <p class="board-label">우리집 <small>끌어다 놓기 · 또는 카드를 누른 뒤 칸을 누르기</small></p>
+        <div class="board-body">
+          <div class="tray-wrap">
+            <p class="board-label">손패</p>
+            <div class="tray" id="tray"></div>
+          </div>
+          <div class="grid4" id="grid4"></div>
         </div>
       </div>
-    </div>
-  </div>
-</section>
-
-<section class="garden">
-  <div class="wrap grid">
-    <div class="cycle reveal">
-      <figure><img src="img/cards/Garden_Soil.png" alt="텃밭 카드 앞면(흙)" loading="lazy"><figcaption>심기</figcaption></figure>
-      <span class="arrow">→</span>
-      <figure><img src="img/cards/Garden_Sprout.png" alt="텃밭 카드 뒷면(새싹)" loading="lazy"><figcaption>새싹 → 수확!</figcaption></figure>
-    </div>
-    <div class="reveal">
-      <div class="eyebrow"><img src="img/leaf.png" alt="">텃밭 카드</div>
-      <h2>나뭇잎이 자라는 텃밭</h2>
-      <p class="lead">텃밭에 나뭇잎 토큰 1개를 심으면, 내 차례가 두 번 지난 뒤 3개가 되어 돌아와요.</p>
-      <ol>
-        <li>흙 면에 토큰을 올려 심어요.</li>
-        <li>다음 내 차례에 새싹 면으로 뒤집어요.</li>
-        <li>그다음 차례에 수확! 심은 토큰 1개 + 은행 토큰 2개.</li>
-      </ol>
-      <div class="tip">Tip. 텃밭 카드도 경매에서 더 낙찰받을 수 있어요.</div>
+      <div class="reveal">
+        <div class="mini-rules">
+          <span><span class="chip green">×2</span>그 칸의 가구 가치 × 배율만큼 받기</span>
+          <span><span class="chip red">-2</span>그 칸에 가구가 있으면 수치만큼 내기</span>
+          <span><span class="chip grey">빈칸</span>계산하지 않아요</span>
+        </div>
+        <div class="result" aria-live="polite">
+          <h3>정산 결과</h3>
+          <div id="calcOut"></div>
+          <p class="goal-line" id="goal"></p>
+          <div class="demo-btns">
+            <button class="btn" id="bestBtn" type="button">최고 배치 보기</button>
+            <button class="btn ghosty" id="resetBtn" type="button">다시 하기</button>
+            <button class="btn ghosty" id="drawBtn" type="button">다른 카드 뽑기</button>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </section>
@@ -427,20 +429,20 @@
     </div>
     <div class="grid">
       <div class="panel reveal">
-        <h3>이럴 때 게임이 끝나요</h3>
+        <h3>이렇게 끝나요</h3>
         <ol>
-          <li>누군가의 집에 가구가 10장 놓였을 때</li>
-          <li>한 명을 뺀 모든 플레이어의 자금이 0원이 되었을 때</li>
-          <li>가구 카드를 모두 사용했을 때</li>
+          <li>모든 플레이어가 가구 카드 4장을 모으면 경매가 끝나요.</li>
+          <li>각자 4장을 가장 가치가 높아지도록 배치하고, 영향판대로 토큰을 정산해요.</li>
+          <li>정산이 끝나면 점수를 계산합니다.</li>
         </ol>
       </div>
       <div class="panel reveal">
         <h3>점수 계산</h3>
-        <div class="score-row"><b>기본 점수</b><span>내 가구들의 가치 합계 + 내 토큰 수</span></div>
-        <div class="score-row"><b>보너스</b><span>가구 카드를 가장 많이 가진 사람 <span class="bonus">+5</span></span></div>
+        <div class="score-row"><b>기본 점수</b><span>내 가구 카드의 기본 가치 합계 + 내 토큰 수</span></div>
+        <div class="score-row"><b>보너스</b><span>가구를 세로/가로로 가장 길게 배치한 사람 각 <span class="bonus">+5</span></span></div>
       </div>
     </div>
-    <p class="win reveal">점수가 가장 높은 플레이어가 ‘최고의 집’의 주인이 됩니다!</p>
+    <p class="win reveal">점수가 가장 높은 플레이어가 ‘최고의 집’의 주인이 됩니다!<br><small style="font-family:Pretendard;font-size:16px;color:var(--ink-soft)">점수가 같다면, 순서칩 숫자가 가장 낮은 플레이어가 승리해요.</small></p>
   </div>
 </section>
 
@@ -482,18 +484,23 @@
 </dialog>
 
 <script>
+  // [이름, 영문 파일명, 가치, 영향판] — Tools/CardArt/make_cards.py의 CARDS와 같다
   const CARDS = [
-    ["TV장","TVStand",3],["괘종시계","GrandfatherClock",5],["꽃병","Vase",1],["냉장고","Refrigerator",5],
-    ["라디오","Radio",2],["램프","Lamp",2],["러그","Rug",2],["미니스툴","MiniStool",1],["바구니","Basket",1],
-    ["벽난로","Fireplace",5],["벽등","WallSconce",3],["상자","Boxes",1],["서랍장","Drawers",3],["선반","WallShelf",2],
-    ["선인장","Cactus",1],["소파","Sofa",4],["스탠드","FloorLamp",3],["시계","WallClock",2],["싱크대","Sink",4],
-    ["안락의자","Armchair",3],["알람시계","AlarmClock",1],["액자","PictureFrame",2],["어항","Fishbowl",3],
-    ["옷걸이","CoatRack",2],["옷장","Wardrobe",5],["이층침대","BunkBed",5],["장식장","ConsoleTable",4],
-    ["전등","PendantLight",3],["전신거울","FullMirror",3],["정수기","WaterDispenser",3],["찬장","Cupboard",4],
-    ["창문","Window",3],["책장","Bookshelf",4],["촛대","Candelabra",2],["캣타워","CatTower",4],
-    ["커피머신","CoffeeMachine",3],["텔레비전","Television",4],["토스터","Toaster",1],["피아노","Piano",5],
-    ["행거","ClothesRack",2],["협탁","Nightstand",2],["화장대","Vanity",4],["흔들의자","RockingChair",3],
-    ["테이블","Table",3],["오븐","oven",4]
+    ["TV장","TVStand",3,{"TL":1,"T":2,"TR":1,"B":-1}],["괘종시계","GrandfatherClock",5,{"T":-3,"L":-1,"R":-1}],["꽃병","Vase",1,{"T":-1,"B":3}],
+    ["냉장고","Refrigerator",5,{"T":1,"B":-3}],["라디오","Radio",2,{"T":-1,"B":2}],["램프","Lamp",2,{"T":-1,"L":1,"R":1,"B":2}],
+    ["러그","Rug",2,{"TL":1,"T":2,"TR":1}],["미니스툴","MiniStool",1,{"T":2,"B":-1}],["바구니","Basket",1,{"T":2,"B":1}],
+    ["벽난로","Fireplace",5,{"T":1,"L":-2,"R":-2}],["벽등","WallSconce",3,{"T":-2,"B":2}],["상자","Boxes",1,{"T":3,"B":1}],
+    ["서랍장","Drawers",3,{"TL":1,"T":2,"TR":1,"B":-1}],["선반","WallShelf",2,{"T":3,"B":-1}],["선인장","Cactus",1,{"TL":-1,"T":-1,"TR":-1,"L":-1,"R":-1,"BL":-1,"B":-1,"BR":-1}],
+    ["소파","Sofa",4,{"T":-2,"L":1,"R":1}],["스탠드","FloorLamp",3,{"T":-2,"L":1,"R":1}],["시계","WallClock",2,{"T":-1,"B":2}],
+    ["싱크대","Sink",4,{"T":1,"L":1,"R":1,"B":-2}],["안락의자","Armchair",3,{"T":-1,"L":1,"R":2}],["알람시계","AlarmClock",1,{"T":-1,"B":3}],
+    ["액자","PictureFrame",2,{"T":-1,"B":2}],["어항","Fishbowl",3,{"T":-2,"L":-1,"B":2}],["옷걸이","CoatRack",2,{"T":-1,"L":2}],
+    ["옷장","Wardrobe",5,{"T":1,"R":-2,"B":-2}],["이층침대","BunkBed",5,{"T":-3,"L":1,"B":-2}],["장식장","ConsoleTable",4,{"TL":1,"T":2,"TR":1,"B":-2}],
+    ["전등","PendantLight",3,{"T":-2,"BL":1,"B":2,"BR":1}],["전신거울","FullMirror",3,{"T":-2,"L":1,"R":1}],["정수기","WaterDispenser",3,{"T":-2,"L":1,"R":1}],
+    ["찬장","Cupboard",4,{"T":1,"L":1,"B":-2}],["창문","Window",3,{"T":-2,"BL":1,"B":2,"BR":1}],["책장","Bookshelf",4,{"T":1,"R":2,"B":-2}],
+    ["촛대","Candelabra",2,{"T":-1,"L":-1,"R":-1,"B":2}],["캣타워","CatTower",4,{"T":-2,"L":2,"R":-1}],["커피머신","CoffeeMachine",3,{"T":-1,"B":2}],
+    ["텔레비전","Television",4,{"T":-2,"B":2}],["토스터","Toaster",1,{"T":-1,"B":3}],["피아노","Piano",5,{"T":1,"R":-2,"B":-3}],
+    ["행거","ClothesRack",2,{"T":-1,"B":2}],["협탁","Nightstand",2,{"T":3,"L":2,"B":-1}],["화장대","Vanity",4,{"TL":1,"TR":1,"B":-2}],
+    ["흔들의자","RockingChair",3,{"T":-1,"L":-1,"R":-1}]
   ];
 
   const lightbox = document.getElementById("lightbox");
@@ -543,46 +550,192 @@
     pages.appendChild(b);
   }
 
-  // placement demo: 이미 놓인 캣타워 주변 칸에 전등을 놓는다 — 놓는 카드(전등)의 영향판만 발동
-  const LIGHT = { src: "img/cards/PendantLight.png", cells: { T: -2, BL: 1, B: 2, BR: 1 } };
-  const TOWER = { value: 4 };
-  const SLOT = { "0,1": "B", "0,-1": "T", "1,0": "R", "-1,0": "L" };   // 전등 기준으로 캣타워가 있는 방향
-  const SIDE = { T: "위", B: "아래", L: "왼쪽", R: "오른쪽" };
-  const EDGE = { T: "t", B: "b", L: "l", R: "r" };
-  const board = document.getElementById("board");
-  const msg = document.getElementById("msg");
-  const resetBtn = document.getElementById("resetBtn");
-  const spots = [...board.querySelectorAll("button.cell")];
-  const INTRO = msg.innerHTML;
-  spots.forEach(spot => spot.onclick = () => {
-    const slot = SLOT[`${-spot.dataset.dx},${-spot.dataset.dy}`];
-    const v = LIGHT.cells[slot];
-    spots.forEach(x => x.disabled = true);
-    spot.classList.add("chosen");
-    board.classList.add("placed");
-    let token, text;
-    if (!v) {
-      token = `<span class="token none ${EDGE[slot]}">없음</span>`;
-      text = `전등의 ${SIDE[slot]} 칸은 비어 있어서 아무 일도 없어요.<small>토큰 ±0</small>`;
-    } else if (v > 0) {
-      const n = TOWER.value * v;
-      token = `<span class="token ${EDGE[slot]}">+${n}</span>`;
-      text = `${SIDE[slot]} 칸 ×${v} → 캣타워 가치 ${TOWER.value} × ${v} = <span class="plus">토큰 ${n}개를 받아요!</span>`;
-    } else {
-      const n = -v;
-      token = `<span class="token red ${EDGE[slot]}">-${n}</span>`;
-      text = `${SIDE[slot]} 칸에 가구 존재 → ${v} = <span class="minus">토큰 ${n}개를 은행에</span> 내요.`;
+  // placement demo: 손패 4장을 4×4 우리집 판에 배치하면, 놓인 모든 가구의 영향판으로 정산을 계산한다
+  // 초록 칸 = 그 칸의 가구 가치 × 배율만큼 받기 / 빨간 칸 = 그 칸에 가구가 있으면 수치만큼 내기 / 빈 칸 = 계산 안 함
+  const OFFSET = { TL: [-1, -1], T: [0, -1], TR: [1, -1], L2: [-2, 0], L: [-1, 0], R: [1, 0], R2: [2, 0], BL: [-1, 1], B: [0, 1], BR: [1, 1] };
+  const SLOT_KO = { TL: "왼쪽 위", T: "위", TR: "오른쪽 위", L2: "왼쪽 두 번째", L: "왼쪽", R: "오른쪽", R2: "오른쪽 두 번째", BL: "왼쪽 아래", B: "아래", BR: "오른쪽 아래" };
+  const N = 4;
+  const BY_EN = Object.fromEntries(CARDS.map(([ko, en, p, cells]) => [en, { ko, en, p, cells }]));
+  const DEFAULT_HAND = ["Vase", "Drawers", "Sofa", "FloorLamp"];   // 룰북 6쪽 배치 예시와 같은 4장
+  const grid4 = document.getElementById("grid4");
+  const tray = document.getElementById("tray");
+  const calcOut = document.getElementById("calcOut");
+  const goal = document.getElementById("goal");
+  let hand = DEFAULT_HAND.map(en => BY_EN[en]);
+  let pos = [null, null, null, null];   // 카드 i가 놓인 칸 번호(0~15), 손패면 null
+  let sel = null, best = null;
+
+  function settle(p) {
+    const at = {};
+    p.forEach((c, i) => { if (c !== null) at[c] = i; });
+    const rows = [], net = {};
+    let total = 0;
+    p.forEach((c, i) => {
+      if (c === null) return;
+      const x = c % N, y = Math.floor(c / N), me = hand[i];
+      net[i] = 0;
+      for (const [slot, v] of Object.entries(me.cells)) {
+        const [dx, dy] = OFFSET[slot], tx = x + dx, ty = y + dy;
+        if (tx < 0 || ty < 0 || tx >= N || ty >= N) continue;
+        const j = at[ty * N + tx];
+        if (j === undefined) continue;
+        const nb = hand[j], gain = v > 0 ? nb.p * v : v;
+        rows.push(v > 0 ? [`${me.ko} ${SLOT_KO[slot]} 칸 ×${v}`, `${nb.ko}(${nb.p}) × ${v}`, gain]
+                        : [`${me.ko} ${SLOT_KO[slot]} 칸 ${v}`, `${nb.ko}이(가) 있어 ${-v}개를 내요`, gain]);
+        net[i] += gain; total += gain;
+      }
+    });
+    return { rows, net, total };
+  }
+
+  function longest(p) {
+    const on = new Set(p.filter(c => c !== null));
+    let h = 0, v = 0;
+    for (let a = 0; a < N; a++) {
+      let rh = 0, rv = 0;
+      for (let b = 0; b < N; b++) {
+        rh = on.has(a * N + b) ? rh + 1 : 0; h = Math.max(h, rh);
+        rv = on.has(b * N + a) ? rv + 1 : 0; v = Math.max(v, rv);
+      }
     }
-    spot.innerHTML = `<img class="drop" src="${LIGHT.src}" alt="전등 카드">` + token;
-    msg.innerHTML = text;
-    resetBtn.disabled = false;
+    return { h, v };
+  }
+
+  function findBest() {   // 16×15×14×13 = 43,680가지를 모두 세어 본다
+    let top = null;
+    const p = [0, 0, 0, 0], used = new Set();
+    (function go(k) {
+      if (k === 4) { const t = settle(p).total; if (!top || t > top.total) top = { total: t, pos: [...p] }; return; }
+      for (let c = 0; c < N * N; c++) {
+        if (used.has(c)) continue;
+        used.add(c); p[k] = c; go(k + 1); used.delete(c);
+      }
+    })(0);
+    return top;
+  }
+
+  const cardImg = c => `<img src="img/cards/${c.en}.png" alt="${c.ko} 카드 (가치 ${c.p})" draggable="false">`;
+
+  function render() {
+    const r = settle(pos);
+    grid4.innerHTML = "";
+    for (let c = 0; c < N * N; c++) {
+      const i = pos.indexOf(c);
+      const b = document.createElement("button");
+      b.type = "button"; b.className = "slot"; b.dataset.cell = c;
+      b.setAttribute("aria-label", `${Math.floor(c / N) + 1}행 ${c % N + 1}열` + (i >= 0 ? ` — ${hand[i].ko}` : " — 빈 칸"));
+      if (i >= 0) {
+        b.classList.add("has"); b.dataset.idx = i;
+        if (sel === i) b.classList.add("sel");
+        const n = r.net[i];
+        b.innerHTML = cardImg(hand[i]) + `<span class="net ${n < 0 ? "minus" : n === 0 ? "zero" : ""}">${n > 0 ? "+" : ""}${n}</span>`;
+      }
+      grid4.appendChild(b);
+    }
+    tray.innerHTML = "";
+    hand.forEach((card, i) => {
+      const b = document.createElement("button");
+      b.type = "button"; b.className = "tray-slot";
+      if (pos[i] === null) {
+        b.classList.add("has"); b.dataset.idx = i; b.innerHTML = cardImg(card);
+        b.setAttribute("aria-label", `손패: ${card.ko} (가치 ${card.p})`);
+        if (sel === i) b.classList.add("sel");
+      } else b.setAttribute("aria-label", "빈 손패 자리");
+      tray.appendChild(b);
+    });
+
+    const placed = pos.filter(c => c !== null).length;
+    if (!placed) calcOut.innerHTML = `<p class="empty">아직 놓인 가구가 없어요. 손패의 카드를 판에 끌어다 놓아 보세요.</p>`;
+    else {
+      const list = r.rows.length
+        ? `<ul class="calc">${r.rows.map(([a, b, g]) => `<li><b>${a}</b><span>${b}</span><em class="${g < 0 ? "minus" : ""}">${g > 0 ? "+" : ""}${g}</em></li>`).join("")}</ul>`
+        : `<p class="empty">맞닿아 발동한 칸이 아직 없어요. 카드끼리 붙여 보세요.</p>`;
+      const base = hand.reduce((s, c, i) => s + (pos[i] !== null ? c.p : 0), 0);
+      const L = longest(pos);
+      calcOut.innerHTML = list +
+        `<div class="total"><span>${r.total < 0 ? "은행에 내는 토큰" : "은행에서 받는 토큰"}</span><b class="${r.total < 0 ? "minus" : ""}">${Math.abs(r.total)}개</b></div>` +
+        `<p class="score-prev">점수 미리 보기: 기본 가치 합계 <b>${base}</b> + 정산 토큰 <b>${r.total}</b> = <b>${base + r.total}점</b><br>` +
+        `가장 긴 줄: 가로 <b>${L.h}장</b> · 세로 <b>${L.v}장</b> (다른 플레이어보다 길면 각 +5점, 경매 후 남은 토큰도 점수에 더해요)</p>`;
+    }
+    const done = placed === 4 && r.total === best.total;
+    goal.className = "goal-line" + (done ? " done" : "");
+    goal.textContent = done ? `최고 배치를 찾았어요! 이 4장으로 받을 수 있는 최대 ${best.total}개입니다.`
+                            : `도전: 이 4장으로 받을 수 있는 최대 토큰은 ${best.total}개예요.` + (placed < 4 ? ` (${placed}/4장 배치)` : "");
+  }
+
+  function place(i, cell) {   // cell = 칸 번호 또는 null(손패로). 칸에 다른 카드가 있으면 자리를 맞바꾼다
+    if (cell !== null) {
+      const j = pos.indexOf(cell);
+      if (j >= 0 && j !== i) pos[j] = pos[i];
+    }
+    pos[i] = cell; sel = null; render();
+  }
+
+  // 끌어다 놓기 (마우스·터치 공통 Pointer Events). 6px 넘게 움직이지 않으면 '누르기'로 본다
+  let drag = null, justDragged = false;
+  const boardEl = document.getElementById("board");
+  boardEl.addEventListener("pointerdown", e => {
+    justDragged = false;
+    const src = e.target.closest(".slot.has, .tray-slot.has");
+    if (!src || e.button > 0) return;
+    const r = src.getBoundingClientRect();
+    drag = { i: +src.dataset.idx, src, x0: e.clientX, y0: e.clientY, dx: e.clientX - r.left, dy: e.clientY - r.top, w: r.width, ghost: null, over: null };
+    src.setPointerCapture(e.pointerId);
   });
-  resetBtn.onclick = () => {
-    spots.forEach(x => { x.disabled = false; x.classList.remove("chosen"); x.innerHTML = ""; });
-    board.classList.remove("placed");
-    msg.innerHTML = INTRO;
-    resetBtn.disabled = true;
+  boardEl.addEventListener("pointermove", e => {
+    if (!drag) return;
+    if (!drag.ghost) {
+      if (Math.hypot(e.clientX - drag.x0, e.clientY - drag.y0) < 6) return;
+      drag.ghost = document.createElement("img");
+      drag.ghost.className = "ghost"; drag.ghost.src = `img/cards/${hand[drag.i].en}.png`; drag.ghost.alt = "";
+      drag.ghost.style.width = drag.w + "px";
+      document.body.appendChild(drag.ghost);
+      drag.src.classList.add("lift");
+    }
+    drag.ghost.style.left = e.clientX - drag.dx + "px";
+    drag.ghost.style.top = e.clientY - drag.dy + "px";
+    const under = document.elementFromPoint(e.clientX, e.clientY);
+    const over = under && (under.closest(".slot") || under.closest(".tray"));
+    if (over !== drag.over) {
+      drag.over && drag.over.classList.remove("over");
+      over && over.classList.add("over");
+      drag.over = over;
+    }
+  });
+  function endDrag(e, cancel) {
+    if (!drag) return;
+    const d = drag; drag = null;
+    if (!d.ghost) return;
+    d.ghost.remove(); d.over && d.over.classList.remove("over");
+    justDragged = true;   // 끌어 놓은 직후 따라오는 click은 무시 (다음 누름에서 풀림)
+    if (cancel || !d.over) { render(); return; }
+    place(d.i, d.over.classList.contains("slot") ? +d.over.dataset.cell : null);
+  }
+  boardEl.addEventListener("pointerup", e => endDrag(e, false));
+  boardEl.addEventListener("pointercancel", e => endDrag(e, true));
+
+  // 누르기: 카드를 골라 두고(초록 테두리) 칸이나 손패를 누르면 그 자리로
+  boardEl.addEventListener("click", e => {
+    if (justDragged) return;
+    const slot = e.target.closest(".slot"), ts = e.target.closest(".tray-slot");
+    if (!slot && !ts) return;
+    const i = (slot || ts).dataset.idx;
+    if (sel !== null) {
+      if (slot) place(sel, +slot.dataset.cell);
+      else if (i !== undefined && +i !== sel) { sel = +i; render(); }
+      else place(sel, null);
+    } else if (i !== undefined) { sel = +i; render(); }
+  });
+
+  function newHand(cards) { hand = cards; pos = [null, null, null, null]; sel = null; best = findBest(); render(); }
+  document.getElementById("resetBtn").onclick = () => { pos = [null, null, null, null]; sel = null; render(); };
+  document.getElementById("bestBtn").onclick = () => { pos = [...best.pos]; sel = null; render(); };
+  document.getElementById("drawBtn").onclick = () => {
+    const pool = [...CARDS];
+    for (let k = pool.length - 1; k > 0; k--) { const j = Math.floor(Math.random() * (k + 1)); [pool[k], pool[j]] = [pool[j], pool[k]]; }
+    newHand(pool.slice(0, 4).map(c => BY_EN[c[1]]));
   };
+  newHand(hand);
 
   // reveal on scroll
   const io = new IntersectionObserver(es => es.forEach(e => {
