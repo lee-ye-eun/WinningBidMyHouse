@@ -159,9 +159,8 @@
     box-shadow: inset 0 0 0 6px var(--cream-2);
   }
   .board-label { font-family: "Jua"; font-size: 18px; color: var(--wood); margin: 0 0 10px; display: flex; justify-content: space-between; gap: 10px; }
-  .board-label small { font-family: "Pretendard"; font-size: 13.5px; color: var(--ink-soft); }
   /* 넓은 화면: 왼쪽 손패 한 줄(세로) + 오른쪽 4×4 판 — 끌어 놓는 동안 둘 다 한 화면에 보이게 */
-  .board-body { display: grid; grid-template-columns: 196px minmax(0, 380px); gap: 28px; justify-content: center; align-items: center; }
+  .board-body { display: grid; grid-template-columns: 244px minmax(0, 380px); gap: 28px; justify-content: center; align-items: center; }
   .grid4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
   .tray { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
   .slot, .tray-slot {
@@ -172,10 +171,10 @@
   .tray-wrap .board-label { font-size: 15px; justify-content: center; }
   @media (max-width: 560px) {
     .board { padding: 16px; }
-    .board-body { grid-template-columns: minmax(0, 270px); gap: 14px; }
+    .board-body { grid-template-columns: minmax(0, 300px); gap: 14px; }
     .board-label { flex-wrap: wrap; }
     .tray-wrap { order: 2; padding: 12px 0 0; border-right: 0; border-top: 2px dotted var(--line); }
-    .tray { grid-template-columns: repeat(4, 1fr); max-width: 230px; margin: 0 auto; }
+    .tray { grid-template-columns: repeat(4, 1fr); max-width: 300px; margin: 0 auto; }
     .slot .net { font-size: 13px; min-width: 26px; padding: 0 5px; top: -7px; right: -7px; }
   }
   .slot:hover, .slot:focus-visible, .tray-slot:focus-visible { background: #f3f4d6; border-color: var(--olive); outline: none; }
@@ -210,11 +209,8 @@
   .calc li span { grid-column: 1; color: #d9c3a4; font-size: 14.5px; }
   .calc li em { grid-row: 1 / span 2; grid-column: 2; align-self: center; font-style: normal; font-family: "Jua"; font-size: 24px; color: #d6e05a; }
   .calc li em.minus { color: #ff9a76; }
-  .total { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-top: 12px; font-family: "Jua"; font-size: 22px; color: var(--yellow); }
-  .total b { font-weight: 400; font-size: 32px; color: #d6e05a; }
-  .total b.minus { color: #ff9a76; }
-  .score-prev { margin: 10px 0 0; color: #ead6bb; font-size: 15px; }
-  .score-prev b { color: var(--cream); }
+  .result h3 .sum { margin-left: 10px; font-size: 30px; color: #d6e05a; }
+  .result h3 .sum.minus { color: #ff9a76; }
   .goal-line { margin: 14px 0 0; padding: 10px 14px; border-radius: 12px; background: rgba(214, 224, 90, .12); color: #e5ec9c; font-weight: 600; font-size: 15px; }
   .goal-line.done { background: var(--olive); color: #fff; }
   .demo-btns { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
@@ -398,7 +394,6 @@
         <span><span class="chip grey">빈칸</span>계산하지 않아요</span>
       </div>
       <div class="board reveal" id="board">
-        <p class="board-label">우리집 <small>끌어다 놓기 · 또는 카드를 누른 뒤 칸을 누르기</small></p>
         <div class="board-body">
           <div class="tray-wrap">
             <p class="board-label">손패</p>
@@ -409,7 +404,7 @@
       </div>
       <div class="reveal">
         <div class="result" aria-live="polite">
-          <h3>정산 결과</h3>
+          <h3>정산 결과 <span class="sum" id="sum"></span></h3>
           <div id="calcOut"></div>
           <p class="goal-line" id="goal"></p>
           <div class="demo-btns">
@@ -590,19 +585,6 @@
     return { rows, net, total };
   }
 
-  function longest(p) {
-    const on = new Set(p.filter(c => c !== null));
-    let h = 0, v = 0;
-    for (let a = 0; a < N; a++) {
-      let rh = 0, rv = 0;
-      for (let b = 0; b < N; b++) {
-        rh = on.has(a * N + b) ? rh + 1 : 0; h = Math.max(h, rh);
-        rv = on.has(b * N + a) ? rv + 1 : 0; v = Math.max(v, rv);
-      }
-    }
-    return { h, v };
-  }
-
   function findBest() {   // 16×15×14×13 = 43,680가지를 모두 세어 본다
     let top = null;
     const p = [0, 0, 0, 0], used = new Set();
@@ -647,17 +629,15 @@
     });
 
     const placed = pos.filter(c => c !== null).length;
+    const sum = document.getElementById("sum");   // 제목 옆 합계: 은행에서 받는(음수면 내는) 토큰
+    sum.textContent = placed ? `${r.total}개` : "";
+    sum.className = "sum" + (r.total < 0 ? " minus" : "");
     if (!placed) calcOut.innerHTML = `<p class="empty">아직 놓인 가구가 없어요. 손패의 카드를 판에 끌어다 놓아 보세요.</p>`;
     else {
       const list = r.rows.length
         ? `<ul class="calc">${r.rows.map(([a, b, g]) => `<li><b>${a}</b><span>${b}</span><em class="${g < 0 ? "minus" : ""}">${g > 0 ? "+" : ""}${g}</em></li>`).join("")}</ul>`
         : `<p class="empty">맞닿아 발동한 칸이 아직 없어요. 카드끼리 붙여 보세요.</p>`;
-      const base = hand.reduce((s, c, i) => s + (pos[i] !== null ? c.p : 0), 0);
-      const L = longest(pos);
-      calcOut.innerHTML = list +
-        `<div class="total"><span>${r.total < 0 ? "은행에 내는 토큰" : "은행에서 받는 토큰"}</span><b class="${r.total < 0 ? "minus" : ""}">${Math.abs(r.total)}개</b></div>` +
-        `<p class="score-prev">점수 미리 보기: 기본 가치 합계 <b>${base}</b> + 정산 토큰 <b>${r.total}</b> = <b>${base + r.total}점</b><br>` +
-        `가장 긴 줄: 가로 <b>${L.h}장</b> · 세로 <b>${L.v}장</b> (다른 플레이어보다 길면 각 +5점, 경매 후 남은 토큰도 점수에 더해요)</p>`;
+      calcOut.innerHTML = list;
     }
     const done = placed === 4 && r.total === best.total;
     goal.className = "goal-line" + (done ? " done" : "");
