@@ -259,11 +259,9 @@
   dialog img { border-radius: 18px; max-height: 82vh; width: auto; margin: 0 auto; }
   dialog p { text-align: center; color: var(--cream); font-family: "Jua"; font-size: 22px; margin: 12px 0 0; }
 
-  .tip { background: #fbe6da; border-left: 6px solid #ef9a72; border-radius: 12px; padding: 16px 20px; margin-top: 24px; color: #8a4125; }
-  .tip b { font-family: "Jua"; font-weight: 400; font-size: 19px; display: block; margin-bottom: 2px; }
 
   /* end + score */
-  .end .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; margin-top: 36px; }
+  .end .grid { display: grid; grid-template-columns: minmax(0, 1fr); max-width: 760px; margin: 36px auto 0; }
   .panel { background: var(--paper); border-radius: var(--radius); padding: 28px 30px; border: 1px solid var(--line); }
   .panel h3 { font-size: 26px; color: var(--wood); margin: 0 0 12px; }
   .panel ol, .panel ul { margin: 0; padding-left: 20px; color: var(--ink-soft); }
@@ -274,7 +272,6 @@
   .score-row span { color: var(--ink-soft); text-align: right; }
   .score-row .bonus { background: var(--caramel); color: #fff; border-radius: 99px; padding: 0 10px; font-weight: 700; }
   .win { margin-top: 28px; text-align: center; font-family: "Jua"; font-size: clamp(22px, 3vw, 30px); color: var(--wood); }
-  @media (max-width: 760px) { .end .grid { grid-template-columns: minmax(0, 1fr); } }
 
   /* rulebook */
   .rulebook { background: var(--cream-2); }
@@ -374,7 +371,7 @@
       <div class="step reveal">
         <div class="num">3</div>
         <h3>낙찰</h3>
-        <p>낙찰가만큼 토큰을 은행에 내고 가구 카드를 손패로 가져와요. 4장을 모으면 남은 순서칩 중 가장 작은 숫자를 가져가고 경매에서 빠집니다.</p>
+        <p>낙찰가만큼 토큰을 은행에 내고 가구 카드를 손패로 가져와요.</p>
       </div>
       <div class="step reveal">
         <div class="num">4</div>
@@ -382,7 +379,6 @@
         <p>경매가 모두 끝나면 다 함께 4장을 우리집에 배치해요. 배치를 확정하면 <b>영향판</b>대로 토큰을 정산합니다.</p>
       </div>
     </div>
-    <div class="tip reveal"><b>나뭇잎 토큰을 모두 사용했다면?</b>가구 4장을 모으기 전에 토큰을 다 썼다면, 남은 순서칩 중 가장 큰 숫자를 가져와요. 다른 플레이어의 경매가 모두 끝나면, 경매장에 남은 카드 2장 중 1장을 가져올 수 있어요.</div>
   </div>
 </section>
 
@@ -432,14 +428,6 @@
       <h2>누가 최고의 집 주인?</h2>
     </div>
     <div class="grid">
-      <div class="panel reveal">
-        <h3>이렇게 끝나요</h3>
-        <ol>
-          <li>모든 플레이어가 가구 카드 4장을 모으면 경매가 끝나요.</li>
-          <li>각자 4장을 가장 가치가 높아지도록 배치하고, 영향판대로 토큰을 정산해요.</li>
-          <li>정산이 끝나면 점수를 계산합니다.</li>
-        </ol>
-      </div>
       <div class="panel reveal">
         <h3>점수 계산</h3>
         <div class="score-row"><b>기본 점수</b><span>내 가구 카드의 기본 가치 합계 + 내 토큰 수</span></div>
